@@ -65,7 +65,7 @@ uint64_t Assembler::getLocationCounter(){
 }
 
 void Assembler::refreshSectionSize(Section& sec) {
-  //Used to update section siz inside symbol table, and section header after adding data to section
+  //Used to update section size inside symbol table, and section header after adding data to section
   sec.size = sec.data.size();
   if (symTable.hasSymbol(sec.name)) 
     symTable.getSymbol(sec.name).size = sec.size;

@@ -44,7 +44,6 @@ struct SymbolTableEntry{
 };
 
 struct SymbolTable {
-  int getSize();
   void addSymbol(SymbolTableEntry& sym);
   bool hasSymbol(const string& symbolName);
   SymbolTableEntry& getSymbol(const string& symbolName);

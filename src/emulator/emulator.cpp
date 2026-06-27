@@ -5,14 +5,12 @@
 #include <iomanip>
 using namespace std;
 
-Emulator::Emulator() 
-    : halted(false), timerInterruptPending(false), terminalInterruptPending(false){
-    //init all registers to zero
-    for (int i = 0; i < 16; i++) registers[i] = 0;
-    status = 0;
-    handler = 0;
-    cause = 0;
-    //PC is assigned in loadHex
+Emulator::Emulator() : halted(false), timerInterruptPending(false), terminalInterruptPending(false){
+  //init all registers to zero
+  for (int i = 0; i < 16; i++) registers[i] = 0;
+  status = 0;
+  handler = 0;
+  cause = 0;
 }
 
 uint32_t Emulator::read32(uint32_t addr) {
@@ -26,9 +24,8 @@ uint32_t Emulator::read32(uint32_t addr) {
 }
 
 void Emulator::write32(uint32_t addr, uint32_t value) {
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++) 
     memory[addr + i] = (value >> (8 * i)) & 0xFF;
-  }
 }
 
 uint32_t& Emulator::getReg(uint8_t regInd) {
@@ -44,13 +41,13 @@ void Emulator::loadHex(ifstream& input){
     if(colon == string::npos)
       throw runtime_error("Wrong input format!");
 
-    uint32_t addr = std::stoul(line.substr(0, colon), nullptr, 16);   //string to unsigned long
+    uint32_t addr = stoul(line.substr(0, colon), nullptr, 16);   //string to unsigned long
 
     istringstream iss(line.substr(colon + 1));
     string byteStr;
     while (iss >> byteStr) {
-        uint8_t byte = std::stoul(byteStr, nullptr, 16);
-        memory[addr++] = byte;
+      uint8_t byte = stoul(byteStr, nullptr, 16);
+      memory[addr++] = byte;
     }
   }
 
@@ -78,7 +75,7 @@ void Emulator::execute(InstrDesc instrCode) {
       push(registers[15]);
       cause = 4;
       //status &= ~0x1;
-      status |= 0x1;
+      status |= 0x4;
       registers[15] = handler;
       break;
     }
@@ -117,7 +114,6 @@ void Emulator::execute(InstrDesc instrCode) {
     }
     case 0x5:{
       //ARITHMETIC
-      
       uint32_t src1 = getReg(instrCode.B);
       uint32_t src2 = getReg(instrCode.C);
       uint32_t result;
@@ -260,7 +256,7 @@ void Emulator::triggerInterrupt(uint8_t interruptCause) {
   push(registers[15]);  //push PC
   cause = interruptCause;
   //status |= 0x4;
-  status |= 0x1; 
+  status |= 0x4; 
   registers[15] = handler;
 }
 
@@ -279,7 +275,7 @@ void Emulator::checkInterrupts() {
   if(status & 0x4) return;
 
   //timerPending
-  if(timerInterruptPending && !(status & 0x4)){
+  if(timerInterruptPending && !(status & 0x1)){
     timerInterruptPending = false;
     triggerInterrupt(2);
     return;

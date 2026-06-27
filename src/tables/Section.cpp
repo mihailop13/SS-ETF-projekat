@@ -2,22 +2,6 @@
 #include "assembler/assembler.hpp"
 #include <iomanip>
 
-int32_t Section::returnLiteralOffset(uint32_t value){
-  for(LiteralPoolEntry l : pool){
-    if(l.sym == "" && l.value == value)
-      return l.offset;
-  }
-  return -1;
-}
-
-int32_t Section::returnSymbolOffset(string symbol) {
-  for(LiteralPoolEntry& l : pool){
-    if(l.sym == symbol)   
-      return l.offset;
-  }
-  return -1;
-}
-
 void Section::addToLiteralPool(uint32_t value, string symbol, uint32_t instrOffset) {
   for(int32_t i = 0; i < (int32_t)pool.size(); i++) {
     bool match = symbol.empty() ? (pool[i].sym.empty() && pool[i].value == value)
@@ -57,12 +41,13 @@ void Section::patchD12(int instrOffset, int16_t D) {
 }
 
 void Section::resolveLiterals(){
+  //used to backpatch the instructions that use literalPool, with the offset of the literal inside the literalPool
   for(LiteralPoolUse& use : poolUses) {
     LiteralPoolEntry& entry = pool[use.poolIndex];
     int32_t D = (int32_t)entry.offset - (int32_t)(use.instrOffset + 4);
     if(!fits12Signed(D))
       throw runtime_error("Literal pool too far from instruction (section: " + name + ")");
-    patchD12(use.instrOffset, (int16_t)D);
+    patchD12(use.instrOffset, (int16_t)D);    //instruction is patched with the offset of the literal in the literal pool
   }
 }
 
@@ -80,8 +65,6 @@ void Section::writeLiteralPool(Assembler& assembler) {
     assembler.refreshSectionSize(*this);
 
     if(!entry.sym.empty()) {
-      /*if(!assembler.symTable.hasSymbol(entry.sym))
-        assembler.addSymbol(entry.sym, 0, UNDEFINED, NONE, LOCAL, false);*/
       //if literal is a symbol, then add relocation entry for it
       Relocation r(entry.offset, entry.sym);
       relTable.relocations.push_back(r);
@@ -102,7 +85,7 @@ void Section::removePoolUseByInstr(uint32_t instrOffset) {
 
 void Section::cleanUpLiterals() {
   //cleans up the literals, which uses has been removed
-  vector<int> newIndex(pool.size(), -1);      //creates a vector with pool.size, initialized with -1
+  vector<int> newIndex(pool.size(), -1);            //creates a vector with pool.size, initialized with -1
   vector<LiteralPoolEntry> newPool;
   newPool.reserve(pool.size());
 

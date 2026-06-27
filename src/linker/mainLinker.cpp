@@ -1,5 +1,8 @@
 #include "linker/linker.hpp"
 #include "linker/readFiles.hpp"
+#include <iostream>
+
+using namespace std;
 
 LinkerOptions parseOptions(int argc, char* argv[]) {
   LinkerOptions opts;
@@ -33,55 +36,37 @@ int main(int argc, char* argv[]){
   try {
     LinkerOptions options = parseOptions(argc, argv);
 
-    // Provera: mora biti -hex (za nivo A)
     if (!options.hexMode) {
-        cerr << "Error: -hex option is required for level A" << endl;
-        return 1;
+      cout << "Error: -hex option is required for level A" << endl;
+      return 1;
     }
 
     if (options.inputFiles.empty()) {
-        cerr << "Error: no input files specified" << endl;
-        return 1;
-    }
-
-    if (options.outputFile.empty()) {
-        options.outputFile = "program.hex";
+      cout << "Error: no input files specified" << endl;
+      return 1;
     }
 
     Linker linker;
 
-    // 1. Učitaj sve .o fajlove
-    for (auto& file : options.inputFiles) {
-        linker.objectFiles.push_back(readObjectFile(file));
-    }
-
-    // 2. Spoji sekcije
-    linker.mergeSections();
-
-    // 3. Napravi globalnu tabelu simbola
-    linker.createGlobalSymbolTable();
-
-    // 4. Dodeli adrese sekcijama
-    linker.assignAddresses(options);
-
-    // 5. Izračunaj konačne adrese za globalne simbole
-    linker.resolveSymbolAddresses();
-
-    // 6. Primeni relokacije
-    linker.applyRelocations();
+    //Load all .o files
+    for (auto& file : options.inputFiles)
+      linker.objectFiles.push_back(readObjectFile(file));
+    
+    linker.mergeSections();                 //Merge sections
+    linker.createGlobalSymbolTable();       //make global symTable
+    linker.assignAddresses(options);        //assign addresses to the sections
+    linker.resolveSymbolAddresses();        //calculate final absolute addresses of all defined global symbols
+    linker.applyRelocations();              //apply relocations to all sections
 
     // 7. Generiši hex izlaz
     ofstream out(options.outputFile);
     if (!out.is_open()) {
-        throw runtime_error("Cannot open output file: " + options.outputFile);
+      throw runtime_error("Cannot open output file: " + options.outputFile);
     }
-    linker.generateHexOutput(out);
-    out.close();
-
-    cout << "Linker finished successfully. Output: " << options.outputFile << endl;
-
+    linker.generateHexOutput(out);          //generate hex output file
+    out.close();                      
   } catch (const exception& e) {
-    cerr << "Linker error: " << e.what() << endl;
+    cout << "Linker error: " << e.what() << endl;
     return 1;
   }
 

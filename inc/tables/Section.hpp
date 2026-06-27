@@ -34,8 +34,6 @@ struct Section{
   vector<LiteralPoolEntry> pool;    //each section has a separate literalPool
   vector<LiteralPoolUse> poolUses;  //tracks the instructions that use literal
   void addToLiteralPool(uint32_t value, string symbol, uint32_t instrOffset);     //instrOffset - offset where backpatching has to be done
-  int32_t returnLiteralOffset(uint32_t);
-  int32_t returnSymbolOffset(string);
   void writeLiteralPool(Assembler& assembler);          //write literalPool at the end of section code
   void resolveLiterals();
   void removePoolUseByInstr(uint32_t instrOffset);

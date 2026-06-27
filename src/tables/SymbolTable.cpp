@@ -8,15 +8,6 @@ inline void writeString(ostream& output, const string& s){
   output.write(s.c_str(), size);
 }
 
-/*SymbolTable::SymbolTable(){
-  SymbolTableEntry s("", LOCAL, UNDEFINED, NONE, 0, 0, 0, false);
-  syms[s.symbolName] = s;
-}*/
-
-int SymbolTable::getSize(){
-  return syms.size();
-}
-
 bool SymbolTable::hasSymbol(const string& symbolName){
   return syms.find(symbolName) != syms.end();
 }
